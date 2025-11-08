@@ -43,7 +43,7 @@ export const Footer = () => {
             <Link to="/" className="text-sm text-sky-100/80 hover:underline">
               Home
             </Link>
-            <Link to="/hr-dashboard" className="text-sm text-sky-100/80 hover:underline">
+            <Link to="/candidate-dashboard" className="text-sm text-sky-100/80 hover:underline">
               HR
             </Link>
             <Link to="/analytics" className="text-sm text-sky-100/80 hover:underline">

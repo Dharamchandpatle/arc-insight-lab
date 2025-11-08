@@ -20,7 +20,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ type, collapsed = false, onToggle }: SidebarProps) => {
   const hrLinks = [
-    { to: "/hr-dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/candidate-dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { to: "/jd-upload", icon: FileText, label: "Upload JD" },
     { to: "/interview-scheduling", icon: Calendar, label: "Interview Scheduling" },
     { to: "/analytics", icon: BarChart3, label: "Analytics" },

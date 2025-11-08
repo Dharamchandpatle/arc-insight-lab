@@ -1,5 +1,4 @@
 import { GlassCard } from "@/components/GlassCard";
-import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,10 +42,9 @@ const InterviewScheduling = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar showSearch onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <Sidebar type="hr" collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
-      <main className={`pt-24 pb-16 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} md:${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
+      <main className={`pt-6 pb-16 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} md:${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
         <div className="container mx-auto px-6">
           <div className="mb-6">
             <h1 className="text-3xl font-heading font-bold">Interview Scheduling</h1>

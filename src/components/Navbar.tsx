@@ -58,7 +58,7 @@ export const Navbar = ({ showSearch = false, onToggleSidebar }: NavbarProps) => 
 
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-2">
-              <Link to="/hr-dashboard" className="text-sm text-sky-100/80 hover:underline">
+              <Link to="/candidate-dashboard" className="text-sm text-sky-100/80 hover:underline">
                 HR
               </Link>
               <Link to="/analytics" className="text-sm text-sky-100/80 hover:underline">

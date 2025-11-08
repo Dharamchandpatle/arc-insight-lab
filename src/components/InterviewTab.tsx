@@ -1,10 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import CandidateAvatar from "../interview/CandidateAvatar";
-import HRAvatar, { HRAvatarHandle } from "../interview/HRAvatar";
-import TranscriptionPanel from "../interview/TranscriptionPanel";
-import WaveVisualizer from "../interview/WaveVisualizer";
-import { fetchAiResponse } from "../../lib/aiMock";
-import { createMicrophoneAnalyser, getAmplitudeFromAnalyser } from "../../lib/audioUtils";
+import { fetchAiResponse } from "../lib/aiMock";
+import { createMicrophoneAnalyser, getAmplitudeFromAnalyser } from "../lib/audioUtils";
 
 const InterviewTab: React.FC = () => {
   const [running, setRunning] = useState(false);
@@ -15,8 +11,6 @@ const InterviewTab: React.FC = () => {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
-
-  const hrRef = useRef<HRAvatarHandle | null>(null);
 
   // SpeechRecognition setup
   const recogRef = useRef<any>(null);
@@ -49,49 +43,53 @@ const InterviewTab: React.FC = () => {
       return;
     }
 
-    // SpeechRecognition setup
+    // setup speech recognition
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Speech recognition not supported in this browser");
-      return;
-    }
+    if (SpeechRecognition) {
+      const r = new SpeechRecognition();
+      r.continuous = true;
+      r.interimResults = true;
+      r.lang = "en-US";
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
-
-    recognition.onresult = (event: any) => {
-      const lastResult = event.results[event.results.length - 1];
-      if (lastResult.isFinal) {
-        const transcript = lastResult[0].transcript.trim();
-        if (transcript) {
-          setCandidateLines((c) => [...c, transcript]);
-          // Trigger AI response after a short delay
-          setTimeout(async () => {
-            const reply = await fetchAiResponse();
-            setHrLines((h) => [...h, reply]);
-            hrRef.current?.speakAnimation();
-            const ut = new SpeechSynthesisUtterance(reply);
-            window.speechSynthesis.speak(ut);
-          }, 1000);
+      let currentLine = "";
+      r.onresult = (ev: any) => {
+        let interim = "";
+        for (let i = ev.resultIndex; i < ev.results.length; ++i) {
+          const res = ev.results[i];
+          if (res.isFinal) {
+            currentLine = (res[0]?.transcript || "").trim();
+            if (currentLine) {
+              setCandidateLines((s) => [...s, currentLine]);
+              // trigger HR reply
+              setTimeout(async () => {
+                const reply = await fetchAiResponse(currentLine);
+                setHrLines((h) => [...h, reply]);
+                // HR animate and speak
+                const ut = new SpeechSynthesisUtterance(reply);
+                ut.lang = "en-US";
+                window.speechSynthesis.speak(ut);
+              }, 600);
+            }
+          } else {
+            interim += res[0]?.transcript || "";
+          }
         }
-      }
-    };
+      };
 
-    recognition.onerror = (event: any) => {
-      console.error("Speech recognition error", event.error);
-    };
+      r.onend = () => {
+        // continue if running
+        if (running) r.start();
+      };
 
-    recognition.onend = () => {
-      if (running) {
-        // Restart if still running
-        try { recognition.start(); } catch (e) {}
-      }
-    };
+      r.onerror = (e: any) => {
+        console.warn("Speech recognition error", e);
+      };
 
-    recogRef.current = recognition;
-    recognition.start();
+      r.start();
+      recogRef.current = r;
+    } else {
+      console.warn("SpeechRecognition not supported in this browser");
+    }
 
     // sample analyser amplitude
     let raf = 0;
@@ -128,37 +126,67 @@ const InterviewTab: React.FC = () => {
       <div className="text-center">
         <h2 className="text-2xl font-heading mb-2">Live Interview Session</h2>
         <p className="text-muted-foreground">Practice your interview skills with AI-powered feedback</p>
+        <p className="text-sm text-green-600 mt-2">✅ InterviewTab is loaded and working!</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">You</h3>
-            <div className="w-32">
-              <WaveVisualizer analyser={analyserRef.current} simulatedLevel={mouthPower} />
+            <div className="w-32 h-12 bg-blue-100 rounded flex items-center justify-center">
+              <span className="text-xs">Wave: {(mouthPower * 100).toFixed(0)}%</span>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-xl">
-            <CandidateAvatar mouthPower={mouthPower} />
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-xl h-64 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <span className="text-white text-2xl">👤</span>
+              </div>
+              <p className="text-sm">Candidate Avatar</p>
+              <p className="text-xs text-gray-500">Mouth: {(mouthPower * 100).toFixed(0)}%</p>
+            </div>
           </div>
         </div>
 
         <div className="flex-1 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">AI Interviewer</h3>
-            <div className="w-32">
-              <WaveVisualizer analyser={null} simulatedLevel={running ? 0.4 : 0} />
+            <div className="w-32 h-12 bg-purple-100 rounded flex items-center justify-center">
+              <span className="text-xs">Wave: {running ? '40%' : '0%'}</span>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-xl">
-            <HRAvatar ref={hrRef} isSpeaking={false} />
+          <div className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-xl h-64 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <span className="text-white text-2xl">🤖</span>
+              </div>
+              <p className="text-sm">AI Interviewer</p>
+              <p className="text-xs text-gray-500">Status: {running ? 'Active' : 'Inactive'}</p>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <TranscriptionPanel candidateText={candidateLines} hrText={hrLines} />
+          <div className="bg-card p-4 rounded-xl border min-h-32">
+            <h4 className="font-semibold mb-2">Live Transcription</h4>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {candidateLines.length === 0 && hrLines.length === 0 && (
+                <p className="text-sm text-gray-500 italic">Start the interview to see transcription...</p>
+              )}
+              {candidateLines.map((line, i) => (
+                <div key={`candidate-${i}`} className="text-sm p-2 bg-blue-50 rounded">
+                  <strong className="text-blue-700">You:</strong> {line}
+                </div>
+              ))}
+              {hrLines.map((line, i) => (
+                <div key={`hr-${i}`} className="text-sm p-2 bg-purple-50 rounded">
+                  <strong className="text-purple-700">AI Interviewer:</strong> {line}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -186,8 +214,8 @@ const InterviewTab: React.FC = () => {
                   (async () => {
                     const reply = await fetchAiResponse();
                     setHrLines((h) => [...h, reply]);
-                    hrRef.current?.speakAnimation();
                     const ut = new SpeechSynthesisUtterance(reply);
+                    ut.lang = "en-US";
                     window.speechSynthesis.speak(ut);
                   })();
                 }}

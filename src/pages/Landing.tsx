@@ -1,6 +1,5 @@
 import { AIBot3D } from "@/components/AIBot3D";
 import AIInteractiveBackground from "@/components/AIInteractiveBackground";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import gsap from "gsap";
 import { ArrowRight, Sparkles, Target, TrendingUp } from "lucide-react";
@@ -39,9 +38,8 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       
-      <main className="relative pt-24 pb-16">
+      <main className="relative pt-6 pb-16">
   <AIInteractiveBackground />
         {/* Hero Section */}
         <section className="container mx-auto px-6 py-20">
@@ -66,14 +64,14 @@ const Landing = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button
-                size="lg"
-                onClick={() => navigate("/hr-dashboard")}
-                className="group bg-gradient-blue glow-hover text-white font-semibold px-8 py-6 text-lg"
-              >
-                Login as HR
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+                <Button
+                  size="lg"
+                  onClick={() => navigate("/hr/dashboard")}
+                  className="group bg-gradient-blue glow-hover text-white font-semibold px-8 py-6 text-lg"
+                >
+                  Login as HR
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
               <Button
                 size="lg"
                 variant="outline"

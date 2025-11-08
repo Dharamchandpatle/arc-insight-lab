@@ -1,10 +1,10 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Menu, Mic, Search, Video } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavbarProps {
   showSearch?: boolean;
@@ -28,7 +28,7 @@ export const NavbarLegacy = ({ showSearch = false, onToggleSidebar }: NavbarProp
       setUsername("");
       setPassword("");
       // navigate according to role
-      if (u.role === "HR") navigate("/hr-dashboard");
+      if (u.role === "HR") navigate("/candidate-dashboard");
       else navigate("/candidate-dashboard");
     } else {
       alert("Invalid credentials (use candidate/1234 or hr/1234)");

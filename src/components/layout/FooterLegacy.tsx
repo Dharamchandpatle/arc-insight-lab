@@ -16,7 +16,7 @@ export const FooterLegacy = () => {
 
         <div className="flex items-center gap-4 text-sm">
           <Link to="/" className="text-muted-foreground hover:underline">Home</Link>
-          <Link to="/hr-dashboard" className="text-muted-foreground hover:underline">HR</Link>
+          <Link to="/candidate-dashboard" className="text-muted-foreground hover:underline">HR</Link>
           <Link to="/analytics" className="text-muted-foreground hover:underline">Analytics</Link>
         </div>
       </div>

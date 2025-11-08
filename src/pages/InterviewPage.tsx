@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import CandidateAvatar from "../components/interview/CandidateAvatar";
-import HRAvatar, { HRAvatarHandle } from "../components/interview/HRAvatar";
 import TranscriptionPanel from "../components/interview/TranscriptionPanel";
 import WaveVisualizer from "../components/interview/WaveVisualizer";
 import { fetchAiResponse } from "../lib/aiMock";
@@ -15,8 +14,6 @@ const InterviewPage: React.FC = () => {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
-
-  const hrRef = useRef<HRAvatarHandle | null>(null);
 
   // SpeechRecognition setup
   const recogRef = useRef<any>(null);
@@ -152,8 +149,6 @@ const InterviewPage: React.FC = () => {
                 <WaveVisualizer analyser={null} simulatedLevel={running ? 0.4 : 0} />
               </div>
             </div>
-
-            <HRAvatar ref={hrRef} isSpeaking={false} />
           </div>
         </div>
 
@@ -176,7 +171,6 @@ const InterviewPage: React.FC = () => {
                   (async () => {
                     const reply = await fetchAiResponse();
                     setHrLines((h) => [...h, reply]);
-                    hrRef.current?.speakAnimation();
                     const ut = new SpeechSynthesisUtterance(reply);
                     window.speechSynthesis.speak(ut);
                   })();
