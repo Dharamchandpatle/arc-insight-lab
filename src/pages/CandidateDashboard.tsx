@@ -5,14 +5,17 @@ import { Sidebar } from "@/components/Sidebar";
 import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Clock, Award, MessageSquare } from "lucide-react";
+import { Calendar, Clock, Award, MessageSquare, TrendingUp } from "lucide-react";
 import candidateData from "@/mockData/candidateData.json";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
-  const [countdown, setCountdown] = useState("2d 14h 30m");
+  const [countdown, setCountdown] = useState("");
+  const [liveAnalytics, setLiveAnalytics] = useState(candidateData.liveAnalytics);
+  const [jdMatch, setJdMatch] = useState(candidateData.liveAnalytics.jdMatch);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -25,14 +28,46 @@ const CandidateDashboard = () => {
       });
     }
 
-    // Mock countdown timer
-    const interval = setInterval(() => {
-      // In a real app, calculate from candidateData.upcomingInterview.countdown
-      setCountdown("2d 14h 29m");
-    }, 60000);
+    // Real countdown timer
+    const calculateCountdown = () => {
+      const interviewDate = new Date(candidateData.upcomingInterview.date + " " + candidateData.upcomingInterview.time);
+      const now = new Date();
+      const diff = interviewDate.getTime() - now.getTime();
 
-    return () => clearInterval(interval);
+      if (diff <= 0) {
+        setCountdown("Interview Started!");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      setCountdown(`${days}d ${hours}h ${minutes}m`);
+    };
+
+    calculateCountdown();
+    const interval = setInterval(calculateCountdown, 60000);
+
+    // Simulate live analytics updates
+    const analyticsInterval = setInterval(() => {
+      setJdMatch(prev => {
+        const change = Math.random() > 0.5 ? 1 : -1;
+        const newValue = Math.max(70, Math.min(95, prev + change));
+        return newValue;
+      });
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(analyticsInterval);
+    };
   }, []);
+
+  const handleJoinInterview = () => {
+    toast.success("Joining interview...");
+    setTimeout(() => navigate("/interview"), 1000);
+  };
 
   return (
     <div className="min-h-screen">
@@ -76,7 +111,7 @@ const CandidateDashboard = () => {
               </div>
             </div>
             <Button 
-              onClick={() => navigate("/interview")}
+              onClick={handleJoinInterview}
               className="w-full mt-6 bg-gradient-blue glow-hover"
             >
               Join Interview
@@ -85,7 +120,13 @@ const CandidateDashboard = () => {
 
           {/* Live Analytics */}
           <GlassCard className="mb-8">
-            <h2 className="text-2xl font-heading font-semibold mb-4">Live Interview Analytics</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-heading font-semibold">Live Interview Analytics</h2>
+              <div className="flex items-center gap-2 text-primary animate-pulse">
+                <div className="h-2 w-2 rounded-full bg-primary"></div>
+                <span className="text-sm font-semibold">Live</span>
+              </div>
+            </div>
             <div className="space-y-6">
               <div>
                 <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
@@ -93,21 +134,24 @@ const CandidateDashboard = () => {
                   Transcription
                 </h3>
                 <div className="glass p-4 rounded-lg max-h-32 overflow-y-auto text-sm text-muted-foreground">
-                  {candidateData.liveAnalytics.transcription}
+                  {liveAnalytics.transcription}
                 </div>
               </div>
               <div>
                 <h3 className="text-sm font-semibold mb-2">AI Feedback</h3>
                 <div className="glass p-4 rounded-lg text-sm">
-                  {candidateData.liveAnalytics.feedback}
+                  {liveAnalytics.feedback}
                 </div>
               </div>
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-semibold">JD Match</span>
-                  <span className="text-sm font-bold text-primary">{candidateData.liveAnalytics.jdMatch}%</span>
+                  <span className="text-sm font-semibold flex items-center gap-2">
+                    JD Match
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                  </span>
+                  <span className="text-sm font-bold text-primary">{jdMatch}%</span>
                 </div>
-                <Progress value={candidateData.liveAnalytics.jdMatch} className="h-2" />
+                <Progress value={jdMatch} className="h-2 transition-all duration-500" />
               </div>
             </div>
           </GlassCard>
