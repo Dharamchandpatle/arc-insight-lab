@@ -1,10 +1,11 @@
+import { AIBot3D } from "@/components/AIBot3D";
+import AIInteractiveBackground from "@/components/AIInteractiveBackground";
+import { Navbar } from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
+import gsap from "gsap";
+import { ArrowRight, Sparkles, Target, TrendingUp } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import gsap from "gsap";
-import { Button } from "@/components/ui/button";
-import { Navbar } from "@/components/Navbar";
-import { AIBot3D } from "@/components/AIBot3D";
-import { ArrowRight, Sparkles, Target, TrendingUp } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -40,7 +41,8 @@ const Landing = () => {
     <div className="min-h-screen">
       <Navbar />
       
-      <main className="pt-24 pb-16">
+      <main className="relative pt-24 pb-16">
+  <AIInteractiveBackground />
         {/* Hero Section */}
         <section className="container mx-auto px-6 py-20">
           <div ref={heroRef} className="text-center max-w-4xl mx-auto space-y-8">

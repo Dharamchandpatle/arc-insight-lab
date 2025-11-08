@@ -1,31 +1,41 @@
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
+import AnimatedBg from "@/components/AnimatedBg";
+import { GlassCard } from "@/components/GlassCard";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
-import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Upload, Users, FileCheck, TrendingUp, Search, Trash2, Eye } from "lucide-react";
-import hrData from "@/mockData/hrData.json";
-import { toast } from "sonner";
+import { Interview, getAnalytics, getChartData, getInterviews, saveAnalytics, saveInterviews } from "@/data/hrData";
+import gsap from "gsap";
+import { Eye, FileCheck, Search, Trash2, TrendingUp, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
-interface Interview {
-  id: number;
-  candidate: string;
-  role: string;
-  date: string;
-  time: string;
-  status: string;
-}
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { toast } from "sonner";
 
 const HRDashboard = () => {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [interviews, setInterviews] = useState<Interview[]>(hrData.upcomingInterviews);
-  const [roleTitle, setRoleTitle] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [interviews, setInterviews] = useState<Interview[]>(() => getInterviews());
   const [searchTerm, setSearchTerm] = useState("");
-  const [analytics, setAnalytics] = useState(hrData.analytics);
+  const [analytics, setAnalytics] = useState(() => getAnalytics());
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const chartData = getChartData();
 
   useEffect(() => {
     if (contentRef.current) {
@@ -37,35 +47,36 @@ const HRDashboard = () => {
         ease: "power2.out",
       });
     }
+    if (chartRef.current) {
+      gsap.from(chartRef.current.children, {
+        scale: 0.8,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: "back.out(1.7)",
+      });
+    }
   }, []);
 
-  const handleSubmitJD = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!roleTitle || !jobDescription) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-    
-    toast.success(`Job Description for "${roleTitle}" uploaded successfully!`);
-    setRoleTitle("");
-    setJobDescription("");
-  };
-
   const handleDeleteInterview = (id: number) => {
-    setInterviews(interviews.filter(interview => interview.id !== id));
-    setAnalytics(prev => ({
-      ...prev,
-      feedbackReports: prev.feedbackReports - 1
-    }));
+    const updated = interviews.filter((interview) => interview.id !== id);
+    setInterviews(updated);
+    saveInterviews(updated);
+
+    const updatedAnalytics = { ...analytics, feedbackReports: Math.max(0, analytics.feedbackReports - 1) };
+    setAnalytics(updatedAnalytics);
+    saveAnalytics(updatedAnalytics);
     toast.success("Interview deleted");
   };
 
   const handleStatusToggle = (id: number) => {
-    setInterviews(interviews.map(interview => 
-      interview.id === id 
+    const updated = interviews.map((interview) =>
+      interview.id === id
         ? { ...interview, status: interview.status === "Scheduled" ? "Completed" : "Scheduled" }
         : interview
-    ));
+    );
+    setInterviews(updated);
+    saveInterviews(updated);
     toast.info("Interview status updated");
   };
 
@@ -74,12 +85,15 @@ const HRDashboard = () => {
     interview.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const COLORS = ['#00BFFF', '#1E90FF', '#4169E1', '#0000CD', '#000080'];
+
   return (
     <div className="min-h-screen">
-      <Navbar showSearch />
-      <Sidebar type="hr" />
+      <Navbar showSearch onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      <Sidebar type="hr" collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
       
-      <main className="ml-64 pt-24 pb-16">
+      <main className={`relative pt-24 pb-16 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} md:${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
+        <AnimatedBg />
         <div className="container mx-auto px-6" ref={contentRef}>
           {/* Page Header */}
           <div className="mb-8">
@@ -99,6 +113,8 @@ const HRDashboard = () => {
                   <p className="text-2xl font-heading font-bold">{analytics.topCandidate}</p>
                 </div>
               </div>
+
+          
             </GlassCard>
 
             <GlassCard glow>
@@ -126,39 +142,66 @@ const HRDashboard = () => {
             </GlassCard>
           </div>
 
-          {/* JD Upload Form */}
-          <GlassCard className="mb-8">
-            <h2 className="text-2xl font-heading font-semibold mb-4 flex items-center gap-2">
-              <Upload className="h-6 w-6 text-primary" />
-              Upload Job Description
-            </h2>
-            <form onSubmit={handleSubmitJD} className="space-y-4">
-              <div>
-                <Label htmlFor="role">Role Title</Label>
-                <Input 
-                  id="role" 
-                  placeholder="e.g., Frontend Developer" 
-                  className="glass" 
-                  value={roleTitle}
-                  onChange={(e) => setRoleTitle(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="jd">Job Description</Label>
-                <textarea
-                  id="jd"
-                  rows={6}
-                  placeholder="Paste the job description here..."
-                  className="w-full px-3 py-2 glass rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                />
-              </div>
-              <Button type="submit" className="bg-gradient-blue glow-hover">
-                Submit JD
-              </Button>
-            </form>
-          </GlassCard>
+          {/* Charts */}
+          <div ref={chartRef} className="grid md:grid-cols-2 gap-8 mb-8">
+            <GlassCard>
+              <h2 className="text-2xl font-heading font-semibold mb-6">Candidate JD Match Scores</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData.jdMatchScores}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0, 191, 255, 0.2)" />
+                  <XAxis dataKey="name" stroke="#E6E6E6" />
+                  <YAxis stroke="#E6E6E6" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(10, 14, 42, 0.9)",
+                      border: "1px solid rgba(0, 191, 255, 0.3)",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="score" fill="#00BFFF" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </GlassCard>
+
+            <GlassCard>
+              <h2 className="text-2xl font-heading font-semibold mb-6">Skill Distribution</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={chartData.skillDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {chartData.skillDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </GlassCard>
+          </div>
+
+          {/* Skills Analysis (Radar) */}
+          <div className="mb-8">
+            <GlassCard>
+              <h2 className="text-2xl font-heading font-semibold mb-6">Skills Analysis</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={chartData.skillDistribution.map(d => ({ skill: d.name, score: d.value }))}>
+                  <PolarGrid stroke="rgba(0, 191, 255, 0.12)" />
+                  <PolarAngleAxis dataKey="skill" stroke="#E6E6E6" />
+                  <PolarRadiusAxis stroke="#E6E6E6" />
+                  <Radar name="Skill" dataKey="score" stroke="#00BFFF" fill="#00BFFF" fillOpacity={0.6} />
+                  <Tooltip />
+                </RadarChart>
+              </ResponsiveContainer>
+            </GlassCard>
+          </div>
 
           {/* Upcoming Interviews Table */}
           <GlassCard>
