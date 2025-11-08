@@ -1,0 +1,37 @@
+{
+  "upcomingInterview": {
+    "id": 1,
+    "role": "Frontend Intern",
+    "company": "TechCorp",
+    "date": "2025-11-15",
+    "time": "10:00 AM",
+    "countdown": 172800000
+  },
+  "liveAnalytics": {
+    "transcription": "I have three years of experience working with React and TypeScript. I've built several complex applications...",
+    "feedback": "Great technical articulation. Good explanation of past projects.",
+    "jdMatch": 85
+  },
+  "history": [
+    {
+      "id": 1,
+      "role": "Backend Developer",
+      "company": "StartupX",
+      "date": "2025-10-20",
+      "technicalScore": 88,
+      "communicationScore": 76,
+      "jdMatch": 82,
+      "feedback": "Strong technical skills, needs improvement in communication clarity."
+    },
+    {
+      "id": 2,
+      "role": "Full Stack Developer",
+      "company": "InnovateLabs",
+      "date": "2025-10-15",
+      "technicalScore": 92,
+      "communicationScore": 85,
+      "jdMatch": 90,
+      "feedback": "Excellent performance across all metrics. Strong candidate."
+    }
+  ]
+}

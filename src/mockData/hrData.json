@@ -1,0 +1,41 @@
+{
+  "upcomingInterviews": [
+    {
+      "id": 1,
+      "candidate": "Neha Sharma",
+      "role": "Frontend Intern",
+      "date": "2025-11-10",
+      "time": "10:00 AM",
+      "status": "Scheduled"
+    },
+    {
+      "id": 2,
+      "candidate": "Rahul Patil",
+      "role": "Backend Intern",
+      "date": "2025-11-11",
+      "time": "2:30 PM",
+      "status": "Completed"
+    },
+    {
+      "id": 3,
+      "candidate": "Priya Desai",
+      "role": "Data Science Intern",
+      "date": "2025-11-12",
+      "time": "11:00 AM",
+      "status": "Scheduled"
+    },
+    {
+      "id": 4,
+      "candidate": "Arjun Kumar",
+      "role": "Full Stack Developer",
+      "date": "2025-11-13",
+      "time": "3:00 PM",
+      "status": "Scheduled"
+    }
+  ],
+  "analytics": {
+    "topCandidate": "Neha Sharma",
+    "avgJDMatch": 85,
+    "feedbackReports": 24
+  }
+}

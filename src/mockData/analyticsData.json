@@ -1,0 +1,16 @@
+{
+  "candidateRanking": [
+    { "name": "Neha Sharma", "score": 92 },
+    { "name": "Arjun Kumar", "score": 90 },
+    { "name": "Priya Desai", "score": 88 },
+    { "name": "Rahul Patil", "score": 85 },
+    { "name": "Sneha Reddy", "score": 82 }
+  ],
+  "skillsAnalysis": [
+    { "skill": "Technical", "score": 88 },
+    { "skill": "Communication", "score": 76 },
+    { "skill": "Problem Solving", "score": 85 },
+    { "skill": "JD Match", "score": 82 },
+    { "skill": "Team Fit", "score": 79 }
+  ]
+}
