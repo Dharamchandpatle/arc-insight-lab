@@ -1,9 +1,44 @@
 import { AlertTriangle, Brain, Lightbulb } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHR } from '../../contexts/HRContext';
+import { reportsAPI } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+import InterviewHistoryList from '../InterviewHistoryList';
 
 const AIFeedbackPanel: React.FC = () => {
   const { aiFeedbacks, addAIFeedback, updateAIFeedback, deleteAIFeedback } = useHR();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  // Fetch reports from backend and convert to AI feedback format
+  useEffect(() => {
+    const fetchReports = async () => {
+      if (!user || user.role !== 'HR') return;
+      
+      try {
+        setLoading(true);
+        const reports = await reportsAPI.getAll();
+        
+        // Transform reports to AI feedback format
+        reports.forEach((report: any) => {
+          const existing = aiFeedbacks.find(fb => fb.candidate === report.candidateId?.name);
+          if (!existing && report.feedback) {
+            addAIFeedback({
+              candidate: report.candidateId?.name || 'Unknown Candidate',
+              feedback: report.feedback || report.summary || 'No feedback available',
+              improvement: report.improvementSuggestions || report.areasForImprovement || 'Continue practicing',
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Failed to fetch reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [user]);
   const [open, setOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [form, setForm] = useState({ candidate: '', feedback: '', improvement: '' });
@@ -41,6 +76,28 @@ const AIFeedbackPanel: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-white">AI Feedback & Insights</h3>
         <button onClick={openNew} className="btn-primary">Add Feedback</button>
+      </div>
+
+      {/* Information about automatic saving and AI report generation */}
+      <div className="mb-6 p-4 bg-primary/10 border border-primary/30 rounded-lg">
+        <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+          <Brain className="w-4 h-4" />
+          Automatic Features
+        </h4>
+        <div className="space-y-2 text-sm text-white/80">
+          <div className="flex items-start gap-2">
+            <span className="text-green-400">✓</span>
+            <div>
+              <strong>Automatic Saving:</strong> All interview transcripts and Q&A pairs are automatically saved when an interview ends.
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-green-400">✓</span>
+            <div>
+              <strong>AI Report Generation:</strong> Comprehensive AI analysis reports are automatically generated after each interview, including overall scores, detailed feedback, and Q&A breakdowns.
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -82,6 +139,12 @@ const AIFeedbackPanel: React.FC = () => {
             <p className="text-white/40 text-sm">Feedback will appear after interviews are conducted</p>
           </div>
         )}
+      </div>
+
+      {/* Interview History Section */}
+      <div className="mt-8">
+        <h3 className="text-lg font-bold text-white mb-4">Interview History & Reports</h3>
+        <InterviewHistoryList role="hr" />
       </div>
 
       {open && (

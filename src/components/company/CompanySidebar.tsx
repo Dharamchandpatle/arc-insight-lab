@@ -5,8 +5,6 @@ const items = [
   { to: '/company', label: 'Dashboard' },
   { to: '/company/hr-list', label: 'HR List' },
   { to: '/company/job-postings', label: 'Job Postings' },
-  { to: '/company/departments', label: 'Departments' },
-  { to: '/company/analytics', label: 'Analytics' },
   { to: '/company/ai-insights', label: 'AI Insights' },
   { to: '/company/settings', label: 'Settings' },
 ];

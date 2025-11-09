@@ -2,7 +2,7 @@ import { Menu } from 'lucide-react';
 import React, { useState } from 'react';
 import CandidateCard from '../components/hr/CandidateCard';
 import HRSidebar from '../components/hr/HRSidebar';
-import StatsCard from '../components/hr/StatsCard';
+import InterviewHistoryList from '../components/InterviewHistoryList';
 import { Button } from '../components/ui/button';
 import { useHR } from '../contexts/HRContext';
 
@@ -24,25 +24,8 @@ const HRDashboard: React.FC = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <StatsCard
-            title="Top Performing Candidate"
-            value={data.analytics.topCandidate}
-          />
-          <StatsCard
-            title="Average JD Match"
-            value={`${data.analytics.avgJDMatch}%`}
-            description="Based on skill matching"
-          />
-          <StatsCard
-            title="Feedback Reports"
-            value={data.analytics.feedbackReports}
-            description="Reports generated this month"
-          />
-        </div>
-
         <h2 className="text-2xl font-semibold mb-4">Upcoming Interviews</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {data.upcomingInterviews.map((interview) => (
             <CandidateCard
               key={interview.id}
@@ -54,6 +37,9 @@ const HRDashboard: React.FC = () => {
             />
           ))}
         </div>
+
+        <h2 className="text-2xl font-semibold mb-4">Interview History</h2>
+        <InterviewHistoryList role="hr" />
       </main>
     </div>
   );

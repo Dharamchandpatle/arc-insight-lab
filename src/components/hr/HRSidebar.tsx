@@ -1,4 +1,4 @@
-import { BarChart3, Bell, Calendar, FileText, LayoutDashboard, MessageSquare, Video } from 'lucide-react';
+import { Bell, Calendar, LayoutDashboard, MessageSquare, Video } from 'lucide-react';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
@@ -9,9 +9,7 @@ interface HRSidebarProps {
 const HRSidebar: React.FC<HRSidebarProps> = ({ collapsed }) => {
   const menuItems = [
     { to: '/hr', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/hr/jd-upload', icon: FileText, label: 'JD Upload' },
     { to: '/hr/interview-schedule', icon: Calendar, label: 'Interview Schedule' },
-    { to: '/hr/analytics', icon: BarChart3, label: 'Analytics' },
     { to: '/hr/ai-feedback', icon: MessageSquare, label: 'AI Feedback' },
     { to: '/hr/video-call', icon: Video, label: 'Video Call' },
     { to: '/hr/notifications', icon: Bell, label: 'Notifications' },

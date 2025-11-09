@@ -8,9 +8,7 @@ import AIGlobalInsights from "./components/company/AIGlobalInsights";
 import CompanyLayout from "./components/company/CompanyLayout";
 import CompanyNavbar from "./components/company/CompanyNavbar.tsx";
 import CompanySettings from "./components/company/CompanySettings";
-import DepartmentPerformance from "./components/company/DepartmentPerformance";
 import HRList from "./components/company/HRList";
-import InterviewAnalytics from "./components/company/InterviewAnalytics";
 import JobPostings from "./components/company/JobPostings";
 import AIFeedbackPanel from "./components/hr/AIFeedbackPanel";
 import AnalyticsCharts from "./components/hr/AnalyticsCharts";
@@ -18,7 +16,7 @@ import HRLayout from "./components/hr/HRLayout";
 import InterviewSchedule from "./components/hr/InterviewSchedule";
 import JDUpload from "./components/hr/JDUpload";
 import NotificationPanel from "./components/hr/NotificationPanel";
-import VideoCallSection from "./components/hr/VideoCallSection";
+import LiveInterview from "./components/hr/LiveInterview";
 import FooterLegacy from "./components/layout/FooterLegacy";
 import { CandidateProvider } from "./context/CandidateContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -30,7 +28,6 @@ import CompanyDashboard from "./pages/CompanyDashboard";
 import HRDashboard from "./pages/HRDashboard";
 import HRLogin from "./pages/HRLogin";
 import InterviewPage from "./pages/InterviewPage";
-import Interview3DInterface from "./pages/Interview3DInterface";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
@@ -64,7 +61,7 @@ const App = () => (
               <Route path="interview-schedule" element={<InterviewSchedule />} />
               <Route path="analytics" element={<AnalyticsCharts />} />
               <Route path="ai-feedback" element={<AIFeedbackPanel />} />
-              <Route path="video-call" element={<VideoCallSection />} />
+              <Route path="video-call" element={<LiveInterview />} />
               <Route path="notifications" element={<NotificationPanel />} />
             </Route>
 
@@ -73,13 +70,11 @@ const App = () => (
               <Route index element={<CompanyDashboard />} />
               <Route path="hr-list" element={<HRList />} />
               <Route path="job-postings" element={<JobPostings />} />
-              <Route path="departments" element={<DepartmentPerformance />} />
-              <Route path="analytics" element={<InterviewAnalytics />} />
               <Route path="ai-insights" element={<AIGlobalInsights />} />
               <Route path="settings" element={<CompanySettings />} />
             </Route>
             <Route path="/interview" element={<InterviewPage />} />
-            <Route path="/interview3d" element={<Interview3DInterface />} />
+            <Route path="/interview3d" element={<LiveInterview defaultRole="candidate" />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

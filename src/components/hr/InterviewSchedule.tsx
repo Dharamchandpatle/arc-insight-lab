@@ -1,42 +1,98 @@
 import { Calendar, Clock, Plus, Trash2, User } from 'lucide-react';
 import React, { useState } from 'react';
 import { useHR } from '../../context/HRContext';
+import { interviewsAPI } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 const InterviewSchedule: React.FC = () => {
-  const { scheduledInterviews, addInterview, updateInterviewStatus, removeInterview } = useHR();
+  const { scheduledInterviews, addNewInterview, updateExistingInterview, removeInterview } = useHR();
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    candidate: '',
+    candidateEmail: '',
+    candidateName: '',
     role: '',
     date: '',
     time: '',
+    jobDescription: '',
     status: 'scheduled'
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addInterview(formData);
-    setFormData({
-      candidate: '',
-      role: '',
-      date: '',
-      time: '',
-      status: 'scheduled'
-    });
-    setIsModalOpen(false);
+    if (!user) {
+      toast.error('Please login to schedule interviews');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Combine date and time into ISO string
+      const scheduledAt = new Date(`${formData.date}T${formData.time}`).toISOString();
+      
+      // For now, we'll use candidateEmail to find candidate
+      // In a real app, you'd have a candidate selection dropdown
+      // For now, we'll create interview with candidateEmail as identifier
+      const interviewData = {
+        candidateId: formData.candidateEmail, // This should be candidate user ID in production
+        candidateName: formData.candidateName,
+        role: formData.role,
+        scheduledTime: scheduledAt,
+        jobDescription: formData.jobDescription,
+        date: formData.date,
+        time: formData.time,
+      };
+
+      // Use backend API through HRContext
+      await addNewInterview(interviewData as any);
+      
+      toast.success('Interview scheduled successfully!');
+      setFormData({
+        candidateEmail: '',
+        candidateName: '',
+        role: '',
+        date: '',
+        time: '',
+        jobDescription: '',
+        status: 'scheduled'
+      });
+      setIsModalOpen(false);
+    } catch (error: any) {
+      console.error('Failed to schedule interview:', error);
+      toast.error(error.message || 'Failed to schedule interview');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleStatusChange = (id: number, status: string) => {
-    updateInterviewStatus(id, status);
+  const handleStatusChange = async (id: number, status: string) => {
+    try {
+      const updated = updateExistingInterview(id, { status } as any);
+      if (updated) {
+        toast.success('Interview status updated');
+      } else {
+        toast.error('Failed to update status');
+      }
+    } catch (error: any) {
+      toast.error('Failed to update status');
+    }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     const okay = window.confirm('Delete this interview? This action cannot be undone.');
     if (!okay) return;
-    const success = removeInterview(id);
-    if (!success) {
-      // fallback: log
-      console.warn('Failed to delete interview', id);
+    
+    try {
+      const success = removeInterview(id);
+      if (success) {
+        toast.success('Interview deleted');
+      } else {
+        toast.error('Failed to delete interview');
+      }
+    } catch (error: any) {
+      toast.error('Failed to delete interview');
     }
   };
 
@@ -62,25 +118,36 @@ const InterviewSchedule: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {scheduledInterviews.map((interview) => (
+        {scheduledInterviews.length === 0 && (
+          <div className="text-center py-8 text-white/60">
+            <p>No interviews scheduled yet</p>
+            <p className="text-sm mt-2">Click "Schedule Interview" to add one</p>
+          </div>
+        )}
+        {scheduledInterviews.map((interview) => {
+          const interviewDate = interview.scheduledTime ? new Date(interview.scheduledTime) : null;
+          const dateStr = interviewDate ? interviewDate.toLocaleDateString() : interview.date || 'N/A';
+          const timeStr = interviewDate ? interviewDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : interview.time || 'N/A';
+          
+          return (
           <div key={interview.id} className="bg-white/5 p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <User className="text-primary" size={20} />
                 <div>
-                  <h4 className="text-white font-medium">{interview.candidate}</h4>
-                  <p className="text-sm text-muted-foreground">{interview.role}</p>
+                  <h4 className="text-white font-medium">{interview.candidate || 'Unknown Candidate'}</h4>
+                  <p className="text-sm text-muted-foreground">{interview.position || interview.role || 'Position'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-center">
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Calendar size={14} />
-                    {interview.date}
+                    {dateStr}
                   </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Clock size={14} />
-                    {interview.time}
+                    {timeStr}
                   </div>
                 </div>
                 <select
@@ -104,7 +171,8 @@ const InterviewSchedule: React.FC = () => {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {isModalOpen && (
@@ -113,10 +181,18 @@ const InterviewSchedule: React.FC = () => {
             <h3 className="text-xl font-bold text-white mb-4">Schedule Interview</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
+                type="email"
+                placeholder="Candidate Email"
+                value={formData.candidateEmail}
+                onChange={(e) => setFormData({...formData, candidateEmail: e.target.value})}
+                className="input-field"
+                required
+              />
+              <input
                 type="text"
                 placeholder="Candidate Name"
-                value={formData.candidate}
-                onChange={(e) => setFormData({...formData, candidate: e.target.value})}
+                value={formData.candidateName}
+                onChange={(e) => setFormData({...formData, candidateName: e.target.value})}
                 className="input-field"
                 required
               />
@@ -142,8 +218,17 @@ const InterviewSchedule: React.FC = () => {
                 className="input-field"
                 required
               />
+              <textarea
+                placeholder="Job Description (required)"
+                value={formData.jobDescription}
+                onChange={(e) => setFormData({...formData, jobDescription: e.target.value})}
+                className="input-field h-24"
+                required
+              />
               <div className="flex gap-2">
-                <button type="submit" className="btn-primary flex-1">Schedule</button>
+                <button type="submit" className="btn-primary flex-1" disabled={loading}>
+                  {loading ? 'Scheduling...' : 'Schedule'}
+                </button>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

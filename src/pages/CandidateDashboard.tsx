@@ -1,9 +1,8 @@
 import gsap from "gsap";
-import { Award, MessageSquare, Target, TrendingUp } from "lucide-react";
+import { Award, Brain, MessageSquare, Target, TrendingUp } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import FeedbackPanel from "../components/FeedbackPanel";
-import InterviewHistory from "../components/InterviewHistory";
+import InterviewHistoryList from "../components/InterviewHistoryList";
 import PerformanceGraph from "../components/PerformanceGraph";
 import ProfileSection from "../components/ProfileSection";
 import StatsCard from "../components/StatsCard";
@@ -124,9 +123,6 @@ const CandidateDashboard = () => {
                       <Target className="w-5 h-5" />
                       Start Practice Interview
                     </button>
-                    <button className="w-full px-4 py-3 bg-[#00BFFF]/20 text-[#00BFFF] font-semibold rounded-lg hover:bg-[#00BFFF]/30 transition-all duration-300 border border-[#00BFFF]/30">
-                      View Resume
-                    </button>
                     <button onClick={() => navigate('/practice')} className="w-full px-4 py-3 bg-[#00BFFF]/20 text-[#00BFFF] font-semibold rounded-lg hover:bg-[#00BFFF]/30 transition-all duration-300 border border-[#00BFFF]/30">
                       Practice Questions
                     </button>
@@ -153,15 +149,46 @@ const CandidateDashboard = () => {
               </div>
             </div>
 
-            {/* Analytics & History */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Analytics */}
+            <div className="mb-8">
               <PerformanceGraph />
-              <InterviewHistory />
             </div>
 
-            {/* AI Feedback */}
+            {/* AI Feedback & Interview History */}
             <div className="mb-8">
-              <FeedbackPanel />
+              <div className="bg-[#0A0E2A]/70 backdrop-blur-lg rounded-xl p-6 border border-[#00BFFF]/20">
+                <div className="flex items-center gap-3 mb-6">
+                  <Brain className="w-6 h-6 text-[#00BFFF]" />
+                  <h3 className="text-2xl font-bold font-orbitron text-[#00BFFF]">AI Feedback & Interview Reports</h3>
+                </div>
+                
+                {/* Information about automatic saving and AI report generation */}
+                <div className="mb-6 p-4 bg-[#00BFFF]/10 border border-[#00BFFF]/30 rounded-lg">
+                  <h4 className="text-sm font-semibold text-[#00BFFF] mb-2 flex items-center gap-2">
+                    <Brain className="w-4 h-4" />
+                    Automatic Features
+                  </h4>
+                  <div className="space-y-2 text-sm text-white/80">
+                    <div className="flex items-start gap-2">
+                      <span className="text-green-400">✓</span>
+                      <div>
+                        <strong>Automatic Saving:</strong> All your interview transcripts and Q&A pairs are automatically saved when an interview ends.
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-green-400">✓</span>
+                      <div>
+                        <strong>AI Report Generation:</strong> Comprehensive AI analysis reports are automatically generated after each interview, including your overall score, detailed feedback, and Q&A breakdowns.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Interview History List */}
+                <div>
+                  <InterviewHistoryList role="candidate" />
+                </div>
+              </div>
             </div>
 
             {/* Footer */}

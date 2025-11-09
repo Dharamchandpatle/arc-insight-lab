@@ -1,5 +1,7 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState, useEffect } from 'react';
 import { addInterview, Analytics, deleteInterview, hrData, HRData, Interview, updateAnalytics, updateInterview } from '../mockData/hrMockData';
+import { interviewsAPI } from '../lib/api';
+import { useAuth } from './AuthContext';
 
 interface JobDescription {
   id: number;
@@ -54,6 +56,7 @@ interface HRContextType {
 const HRContext = createContext<HRContextType | undefined>(undefined);
 
 export const HRProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [data, setData] = useState<HRData>(() => {
     // Seed upcoming interviews from localStorage if present, otherwise use hrData
     try {
@@ -67,6 +70,47 @@ export const HRProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     }
     return hrData;
   });
+  const [loading, setLoading] = useState(false);
+
+  // Fetch interviews from backend when user is logged in
+  useEffect(() => {
+    const fetchInterviews = async () => {
+      if (!user || user.role !== 'HR') return;
+      
+      try {
+        setLoading(true);
+        const backendInterviews = await interviewsAPI.getAll();
+        
+        // Transform backend interviews to match frontend Interview type
+        const transformedInterviews: Interview[] = backendInterviews.map((bi: any, index: number) => {
+          const scheduledDate = new Date(bi.scheduledAt);
+          return {
+            id: index + 1, // Use index as id for now
+            candidate: bi.candidateId?.name || bi.candidateId?.email || 'Unknown Candidate',
+            position: bi.jobDescription?.title || bi.jobDescription?.text?.substring(0, 50) || 'Position',
+            scheduledTime: scheduledDate.toISOString(),
+            date: scheduledDate.toLocaleDateString(),
+            time: scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: bi.status || 'scheduled',
+            interviewId: bi.interviewId,
+            role: bi.jobDescription?.title || 'Position',
+          };
+        });
+        
+        setData(prevData => ({
+          ...prevData,
+          upcomingInterviews: transformedInterviews
+        }));
+      } catch (error) {
+        console.error('Failed to fetch interviews:', error);
+        // Keep existing data on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInterviews();
+  }, [user]);
   const [jobDescriptions, setJobDescriptions] = useState<JobDescription[]>(() => {
     const raw = localStorage.getItem('hr_jobDescriptions');
     return raw ? JSON.parse(raw) as JobDescription[] : [];
@@ -80,14 +124,65 @@ export const HRProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     return raw ? JSON.parse(raw) as AIFeedback[] : [];
   });
 
-  const addNewInterview = useCallback((interview: Omit<Interview, "id">) => {
-    const newInterview = addInterview(interview);
-    setData(prevData => ({
-      ...prevData,
-      upcomingInterviews: [...prevData.upcomingInterviews, newInterview]
-    }));
-    return newInterview;
-  }, []);
+  const addNewInterview = useCallback(async (interview: Omit<Interview, "id">) => {
+    try {
+      // If we have candidateId/email and scheduledTime, use backend API
+      const interviewData = interview as any;
+      if ((interviewData.candidateId || interviewData.candidateEmail) && interviewData.scheduledTime) {
+        // Note: Backend expects candidateId (ObjectId), but we might have email
+        // For now, we'll try to use candidateId if it's an ObjectId, otherwise use a placeholder
+        // In production, you'd want to add an endpoint to lookup candidate by email
+        const candidateId = interviewData.candidateId || interviewData.candidateEmail;
+        const jobDescription = interviewData.jobDescription || interviewData.role || '';
+        
+        const backendInterview = await interviewsAPI.schedule(
+          candidateId, // This should be a valid MongoDB ObjectId in production
+          interviewData.scheduledTime,
+          jobDescription
+        );
+        
+        // Transform backend response to frontend format
+        const newInterview: Interview = {
+          id: data.upcomingInterviews.length + 1,
+          candidate: backendInterview.candidateId?.name || interviewData.candidateName || 'Unknown Candidate',
+          position: backendInterview.jobDescription?.title || interviewData.role || 'Position',
+          scheduledTime: new Date(backendInterview.scheduledAt).toISOString(),
+          status: backendInterview.status || 'scheduled',
+          interviewId: backendInterview.interviewId,
+          date: interviewData.date,
+          time: interviewData.time,
+          role: interviewData.role,
+        };
+        
+        setData(prevData => ({
+          ...prevData,
+          upcomingInterviews: [...prevData.upcomingInterviews, newInterview]
+        }));
+        return newInterview;
+      } else {
+        // Fallback to mock data for local-only interviews
+        const newInterview = addInterview(interview);
+        setData(prevData => ({
+          ...prevData,
+          upcomingInterviews: [...prevData.upcomingInterviews, newInterview]
+        }));
+        return newInterview;
+      }
+    } catch (error: any) {
+      console.error('Failed to schedule interview:', error);
+      // If backend fails, still add to local state for UI continuity
+      // User will see error toast from component
+      const newInterview = addInterview({
+        ...interview,
+        candidate: (interview as any).candidateName || (interview as any).candidate || 'Unknown',
+      });
+      setData(prevData => ({
+        ...prevData,
+        upcomingInterviews: [...prevData.upcomingInterviews, newInterview]
+      }));
+      throw error; // Re-throw so component can show error
+    }
+  }, [data.upcomingInterviews.length]);
 
   // Legacy wrapper used by older components
   const addInterviewLegacy = useCallback((interview: Omit<Interview, 'id'>) => {

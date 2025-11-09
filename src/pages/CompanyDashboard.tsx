@@ -1,9 +1,7 @@
 import React from 'react';
 import AIGlobalInsights from '../components/company/AIGlobalInsights';
 import CompanySettings from '../components/company/CompanySettings';
-import DepartmentPerformance from '../components/company/DepartmentPerformance';
 import HRList from '../components/company/HRList';
-import InterviewAnalytics from '../components/company/InterviewAnalytics';
 import JobPostings from '../components/company/JobPostings';
 import NotificationsPanel from '../components/company/NotificationsPanel';
 import SummaryCards from '../components/company/SummaryCards';
@@ -36,10 +34,6 @@ const CompanyDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <DepartmentPerformance />
-        <InterviewAnalytics />
-      </div>
 
       <VideoOverview />
 

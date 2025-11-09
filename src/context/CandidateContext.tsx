@@ -23,6 +23,65 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
   const [loading, setLoading] = useState<boolean>(false);
 
+  // Fetch data from backend API
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { interviewsAPI, reportsAPI } = await import('../lib/api');
+      
+      // Fetch interviews and reports for candidate
+      const [interviews, reports] = await Promise.all([
+        interviewsAPI.getAll().catch(() => []),
+        reportsAPI.getAll().catch(() => [])
+      ]);
+      
+      // Transform backend data to match frontend format
+      const upcomingInterviews = interviews
+        .filter((inv: any) => inv.status === 'scheduled' || inv.status === 'in-progress')
+        .map((inv: any, index: number) => {
+          const date = new Date(inv.scheduledAt);
+          return {
+            id: index + 1,
+            company: inv.hrId?.name || 'Company',
+            role: inv.jobDescription?.title || 'Position',
+            date: date.toLocaleDateString(),
+            time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            interviewId: inv.interviewId,
+          };
+        });
+      
+      const history = reports.map((report: any, index: number) => {
+        const date = new Date(report.generatedAt || report.createdAt);
+        return {
+          id: index + 1,
+          company: report.hrId?.name || 'Company',
+          role: report.interviewId || 'Position',
+          date: date.toLocaleDateString(),
+          feedbackScore: report.overallScore || 0,
+          result: report.recommendation || 'Pending',
+          jdMatch: report.jdMatch || 0,
+          communication: report.communicationScore || 0,
+        };
+      });
+      
+      setData((prevData) => ({
+        ...prevData,
+        upcomingInterviews,
+        history,
+      }));
+    } catch (error) {
+      console.error('Failed to refresh candidate data:', error);
+      // Keep existing data on error
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch data from backend on mount
+  React.useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   // Persist practiceScores whenever they change
   React.useEffect(() => {
     try {
@@ -33,18 +92,6 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // ignore
     }
   }, [data?.practiceScores]);
-
-  // Placeholder refresh - in future can fetch from API
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Simulate refresh delay; replace with fetch call if needed
-      await new Promise((res) => setTimeout(res, 300));
-      setData((d) => ({ ...d }));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   return (
     <CandidateContext.Provider value={{ data, loading, setData, refresh }}>

@@ -1,55 +1,46 @@
-import gsap from 'gsap';
-import React, { useEffect, useRef, useState } from 'react';
-import { useCompany } from '../../contexts/CompanyContext';
+import React from 'react';
+import { Brain } from 'lucide-react';
+import InterviewHistoryList from '../InterviewHistoryList';
 
 const AIGlobalInsights: React.FC = () => {
-  const { data, regenerateAI, setData } = useCompany() as any;
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editNote, setEditNote] = useState('');
-
-  useEffect(() => {
-    if (ref.current) gsap.from(ref.current.children, { opacity: 0, y: 30, stagger: 0.12, duration: 0.7 });
-  }, [data.aiInsights.length]);
-
-  const regenOne = (id: number) => {
-    setData((prev: any) => ({
-      ...prev,
-      aiInsights: prev.aiInsights.map((a: any) => (a.id === id ? { ...a, value: `${Math.floor(70 + Math.random() * 30)}%` } : a)),
-    }));
-  };
-
-  const startEdit = (a: any) => {
-    setEditingId(a.id);
-    setEditNote(a.note || '');
-  };
-
-  const saveEdit = () => {
-    if (!editingId) return;
-    setData((prev: any) => ({
-      ...prev,
-      aiInsights: prev.aiInsights.map((a: any) => (a.id === editingId ? { ...a, note: editNote } : a)),
-    }));
-    setEditingId(null);
-  };
-
   return (
     <div className="p-6 bg-[#07102A]/70 backdrop-blur-lg rounded-xl border border-[#7C3AED]/20">
-      <div className="flex items-center justify-between mb-4">
-  <h3 className="text-xl font-orbitron font-bold text-[#7C3AED]">AI Global Insights</h3>
-  <button onClick={regenerateAI} className="btn">Regenerate All</button>
+      <div className="flex items-center gap-3 mb-6">
+        <Brain className="w-6 h-6 text-[#7C3AED]" />
+        <h3 className="text-2xl font-orbitron font-bold text-[#7C3AED]">AI Insights</h3>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {data.aiInsights.map(ai => (
-          <div key={ai.id} className="p-4 rounded-lg bg-gradient-to-br from-white/3 to-transparent border border-white/5">
-            <h4 className="font-semibold text-white">{ai.title}</h4>
-            <p className="text-sm text-white/70">{ai.summary}</p>
-            <div className="mt-2 flex gap-2">
-              <button onClick={() => regenOne(ai.id)} className="btn btn-sm">Regenerate</button>
-              <button onClick={() => startEdit(ai)} className="btn-ghost btn-sm">Edit</button>
+      
+      {/* Information about interview data */}
+      <div className="mb-6 p-4 bg-[#7C3AED]/10 border border-[#7C3AED]/30 rounded-lg">
+        <h4 className="text-sm font-semibold text-[#7C3AED] mb-2 flex items-center gap-2">
+          <Brain className="w-4 h-4" />
+          Interview Data Overview
+        </h4>
+        <div className="space-y-2 text-sm text-white/80">
+          <div className="flex items-start gap-2">
+            <span className="text-green-400">✓</span>
+            <div>
+              <strong>All Interviews:</strong> View all interviews conducted by your HR team members.
             </div>
           </div>
-        ))}
+          <div className="flex items-start gap-2">
+            <span className="text-green-400">✓</span>
+            <div>
+              <strong>AI Reports:</strong> Access comprehensive AI analysis reports for each interview, including scores, feedback, and Q&A breakdowns.
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-green-400">✓</span>
+            <div>
+              <strong>Transcripts:</strong> Review full interview transcripts and conversations.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Interview History List - shows all interviews from all HRs */}
+      <div>
+        <InterviewHistoryList role="company" />
       </div>
     </div>
   );

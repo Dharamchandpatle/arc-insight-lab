@@ -4,19 +4,44 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'sonner';
 
 const HRLogin: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you would validate credentials here
-    // For demo purposes, we'll just navigate to the dashboard
-    navigate('/hr/dashboard');
+    setError('');
+    setLoading(true);
+    
+    try {
+      const user = await login(formData.email, formData.password);
+      if (user) {
+        toast.success('Login successful!');
+        // Navigate based on role
+        if (user.role === 'HR') {
+          navigate('/hr/dashboard');
+        } else {
+          navigate('/candidate/dashboard');
+        }
+      } else {
+        setError('Invalid credentials');
+        toast.error('Invalid email or password');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+      toast.error(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,8 +83,11 @@ const HRLogin: React.FC = () => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            {error && (
+              <div className="text-red-500 text-sm text-center">{error}</div>
+            )}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
         </CardContent>
