@@ -4,13 +4,38 @@
     { "name": "Arjun Kumar", "score": 90 },
     { "name": "Priya Desai", "score": 88 },
     { "name": "Rahul Patil", "score": 85 },
-    { "name": "Sneha Reddy", "score": 82 }
+    { "name": "Sneha Reddy", "score": 82 },
+    { "name": "Karan Mehta", "score": 78 },
+    { "name": "Aisha Khan", "score": 75 }
   ],
   "skillsAnalysis": [
     { "skill": "Technical", "score": 88 },
     { "skill": "Communication", "score": 76 },
     { "skill": "Problem Solving", "score": 85 },
     { "skill": "JD Match", "score": 82 },
-    { "skill": "Team Fit", "score": 79 }
+    { "skill": "Team Fit", "score": 79 },
+    { "skill": "Ownership", "score": 74 }
+  ]
+
+  ,
+  "companyKPIs": {
+    "monthlyHires": 12,
+    "offerAcceptanceRate": 0.87,
+    "timeToHireDays": 28,
+    "costPerHireUSD": 4200
+  },
+
+  "departmentMetrics": [
+    { "department": "Engineering", "avgJDMatch": 86, "avgTechnical": 88, "openPositions": 5 },
+    { "department": "Data", "avgJDMatch": 82, "avgTechnical": 84, "openPositions": 2 },
+    { "department": "Design", "avgJDMatch": 78, "avgTechnical": 75, "openPositions": 1 }
+  ],
+
+  "monthlyTrends": [
+    { "month": "2025-06", "hires": 8, "applications": 420 },
+    { "month": "2025-07", "hires": 10, "applications": 510 },
+    { "month": "2025-08", "hires": 9, "applications": 480 },
+    { "month": "2025-09", "hires": 11, "applications": 530 },
+    { "month": "2025-10", "hires": 12, "applications": 600 }
   ]
 }

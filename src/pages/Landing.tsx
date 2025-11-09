@@ -80,6 +80,14 @@ const Landing = () => {
               >
                 Login as Candidate
               </Button>
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={() => navigate('/company')}
+                className="font-semibold px-8 py-6 text-lg bg-white/5 text-white"
+              >
+                Company
+              </Button>
             </div>
           </div>
 

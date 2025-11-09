@@ -28,7 +28,7 @@ const CandidateDashboard = () => {
   }, []);
 
   const handleJoinInterview = () => {
-    navigate('/interview');
+    navigate('/interview3d');
   };
 
   return (

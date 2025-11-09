@@ -38,6 +38,8 @@ All colors MUST be HSL.
     --ring: 195 100% 50%;
 
     --radius: 1.25rem;
+  /* App layout tokens */
+  --app-navbar-height: 64px;
     
     /* AI-NEXUS custom tokens */
     --navy-dark: 229 64% 9%; /* #0A0E2A */
@@ -111,6 +113,8 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-body antialiased;
     background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--navy-dark)) 100%);
+    /* Reserve space for the fixed navbar so page content is not overlapped */
+    padding-top: var(--app-navbar-height);
   }
 
   h1, h2, h3, h4, h5, h6 {

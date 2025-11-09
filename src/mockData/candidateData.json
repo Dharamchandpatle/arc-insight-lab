@@ -12,6 +12,18 @@
     "feedback": "Great technical articulation. Good explanation of past projects.",
     "jdMatch": 85
   },
+  "profile": {
+    "id": 1,
+    "name": "Neha Sharma",
+    "email": "neha.sharma@example.com",
+    "location": "Bengaluru, India",
+    "experienceYears": 3,
+    "skills": ["React", "TypeScript", "Tailwind", "Node.js"],
+    "resumeUrl": "https://example.com/resumes/neha_sharma.pdf",
+    "currentStage": "Phone Screen",
+    "appliedDate": "2025-10-01"
+  },
+
   "history": [
     {
       "id": 1,
@@ -32,6 +44,36 @@
       "communicationScore": 85,
       "jdMatch": 90,
       "feedback": "Excellent performance across all metrics. Strong candidate."
+    },
+    {
+      "id": 3,
+      "role": "Frontend Developer",
+      "company": "DesignHub",
+      "date": "2025-09-10",
+      "technicalScore": 86,
+      "communicationScore": 82,
+      "jdMatch": 84,
+      "feedback": "Great UI intuition and component design knowledge."
+    },
+    {
+      "id": 4,
+      "role": "UI Engineer",
+      "company": "PixelWorks",
+      "date": "2025-08-22",
+      "technicalScore": 79,
+      "communicationScore": 80,
+      "jdMatch": 75,
+      "feedback": "Solid fundamentals; could improve on testing coverage."
+    },
+    {
+      "id": 5,
+      "role": "Intern - Frontend",
+      "company": "CampusInterns",
+      "date": "2024-12-05",
+      "technicalScore": 72,
+      "communicationScore": 78,
+      "jdMatch": 70,
+      "feedback": "Good learning attitude and potential."
     }
   ]
 }

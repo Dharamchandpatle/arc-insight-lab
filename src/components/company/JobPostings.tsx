@@ -13,15 +13,15 @@ const JobPostings: React.FC = () => {
   };
 
   return (
-    <div className="glass p-6 rounded-xl">
+    <div className="p-6 bg-[#0A0E2A]/70 backdrop-blur-lg rounded-xl border border-[#00BFFF]/20">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-white">Job Postings</h3>
+        <h3 className="text-xl font-orbitron font-bold text-[#00BFFF]">Job Postings</h3>
         <button onClick={() => setOpen(true)} className="btn-primary">Add New Job</button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {data.jobPostings.map(j => (
-          <div key={j.id} className="bg-white/5 p-4 rounded">
+          <div key={j.id} className="bg-white/5 p-4 rounded-lg border border-transparent hover:border-[#00BFFF]/20 transition">
             <div className="text-white font-medium">{j.title}</div>
             <div className="text-sm text-white/60">Applicants: {j.applicants}</div>
             <div className="mt-2">

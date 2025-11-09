@@ -1,7 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
+import AIFeedbackPanelLocal from "../components/interview/AIFeedbackPanelLocal";
 import CandidateAvatar from "../components/interview/CandidateAvatar";
+import ControlBar from "../components/interview/ControlBar";
+import QuestionPanel from "../components/interview/QuestionPanel";
 import TranscriptionPanel from "../components/interview/TranscriptionPanel";
+import VideoFeed from "../components/interview/VideoFeed";
 import WaveVisualizer from "../components/interview/WaveVisualizer";
+import { interviewData } from "../data/interviewMockData";
 import { fetchAiResponse } from "../lib/aiMock";
 import { createMicrophoneAnalyser, getAmplitudeFromAnalyser } from "../lib/audioUtils";
 
@@ -9,11 +14,17 @@ const InterviewPage: React.FC = () => {
   const [running, setRunning] = useState(false);
   const [candidateLines, setCandidateLines] = useState<string[]>([]);
   const [hrLines, setHrLines] = useState<string[]>([]);
+  const [aiItems, setAiItems] = useState<{ question?: string; feedback: string; score?: number }[]>([]);
+  const [currentQ, setCurrentQ] = useState(0);
   const [mouthPower, setMouthPower] = useState(0);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [isCamOn, setIsCamOn] = useState(true);
+  const [showSummary, setShowSummary] = useState(false);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
+  const hrRef = useRef<any>(null);
 
   // SpeechRecognition setup
   const recogRef = useRef<any>(null);
@@ -41,6 +52,9 @@ const InterviewPage: React.FC = () => {
       const { stream, analyser } = await createMicrophoneAnalyser(audioCtx);
       analyserRef.current = analyser;
       micStreamRef.current = stream;
+      // initial mic/cam state derived from tracks
+      setIsMicOn(stream.getAudioTracks().some(t => t.enabled));
+      setIsCamOn(stream.getVideoTracks().some(t => t.enabled));
     } catch (err) {
       console.warn("Microphone access failed", err);
       return;
@@ -55,7 +69,7 @@ const InterviewPage: React.FC = () => {
       r.lang = "en-US";
 
       let currentLine = "";
-      r.onresult = (ev: SpeechRecognitionEvent) => {
+  r.onresult = (ev: any) => {
         let interim = "";
         for (let i = ev.resultIndex; i < ev.results.length; ++i) {
           const res = ev.results[i];
@@ -68,7 +82,7 @@ const InterviewPage: React.FC = () => {
                 const reply = await fetchAiResponse(currentLine);
                 setHrLines((h) => [...h, reply]);
                 // HR animate and speak
-                hrRef.current?.speakAnimation();
+                if (hrRef.current?.speakAnimation) hrRef.current.speakAnimation();
                 const ut = new SpeechSynthesisUtterance(reply);
                 ut.lang = "en-US";
                 window.speechSynthesis.speak(ut);
@@ -82,7 +96,7 @@ const InterviewPage: React.FC = () => {
 
       r.onend = () => {
         // continue if running
-        if (running) r.start();
+        if (running && isMicOn) r.start();
       };
 
       r.onerror = (e: any) => {
@@ -125,6 +139,63 @@ const InterviewPage: React.FC = () => {
     setMouthPower(0);
   }
 
+  const toggleMic = () => {
+    const s = micStreamRef.current;
+    if (!s) return;
+    const audioTracks = s.getAudioTracks();
+    const next = !isMicOn;
+    audioTracks.forEach(t => t.enabled = next);
+    setIsMicOn(next);
+    // stop/start speech recognition accordingly
+    if (recogRef.current) {
+      try {
+        if (!next) recogRef.current.stop();
+        else if (running) recogRef.current.start();
+      } catch (e) { /* ignore */ }
+    }
+  };
+
+  const toggleCam = () => {
+    const s = micStreamRef.current;
+    if (!s) return;
+    const videoTracks = s.getVideoTracks();
+    const next = !isCamOn;
+    videoTracks.forEach(t => t.enabled = next);
+    setIsCamOn(next);
+  };
+
+  const handleNextQuestion = () => {
+    const next = Math.min(interviewData.questions.length - 1, currentQ + 1);
+    setCurrentQ(next);
+  };
+
+  const handleSpeak = (text: string) => {
+    const ut = new SpeechSynthesisUtterance(text);
+    ut.lang = 'en-US';
+    window.speechSynthesis.speak(ut);
+  };
+
+  const handleGetAI = async () => {
+    // generate mock AI feedback for last candidate line
+    const last = candidateLines[candidateLines.length - 1] || '';
+    const fb = (await fetchAiResponse(last)) || 'Good answer.';
+    const score = 7 + Math.floor(Math.random() * 3);
+    setAiItems((s) => [{ question: interviewData.questions[currentQ], feedback: fb, score }, ...s]);
+    setHrLines((h) => [...h, fb]);
+  };
+
+  const handleEnd = () => {
+    stopInterview();
+    // persist interview to localStorage
+    try {
+      const history = JSON.parse(localStorage.getItem('interview_history') || '[]');
+      const avg = Math.round((aiItems.reduce((s, i) => s + (i.score || 7), 0) / Math.max(1, aiItems.length)));
+      history.unshift({ date: new Date().toISOString(), avgScore: avg, transcripts: candidateLines, ai: aiItems });
+      localStorage.setItem('interview_history', JSON.stringify(history));
+    } catch (e) { /* ignore */ }
+    setShowSummary(true);
+  };
+
   return (
     <div className="p-4 bg-gradient-to-b from-[#0A0E2A] to-black text-sky-100">
       <div className="container mx-auto">
@@ -132,23 +203,16 @@ const InterviewPage: React.FC = () => {
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1 space-y-4">
+            <VideoFeed onStream={(s) => { micStreamRef.current = s; }} />
             <div className="flex items-center justify-between">
-              <h2 className="text-lg">Candidate</h2>
-              <div className="w-48">
-                <WaveVisualizer analyser={analyserRef.current} simulatedLevel={mouthPower} />
-              </div>
+              <div className="w-48"><WaveVisualizer analyser={analyserRef.current} simulatedLevel={mouthPower} /></div>
+              <div className="w-48"><WaveVisualizer analyser={null} simulatedLevel={running ? 0.4 : 0} /></div>
             </div>
-
             <CandidateAvatar mouthPower={mouthPower} />
           </div>
 
           <div className="flex-1 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg">HR Interviewer</h2>
-              <div className="w-48">
-                <WaveVisualizer analyser={null} simulatedLevel={running ? 0.4 : 0} />
-              </div>
-            </div>
+            <QuestionPanel question={interviewData.questions[currentQ]} onNext={handleNextQuestion} onSpeak={handleSpeak} />
           </div>
         </div>
 
@@ -158,25 +222,7 @@ const InterviewPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="bg-[#021025]/40 p-4 rounded-md">
-              <p className="text-sm">Control</p>
-              <div className="mt-3 flex gap-2">
-                {!running ? (
-                  <button onClick={startInterview} className="px-3 py-2 rounded bg-sky-500 text-black">Start</button>
-                ) : (
-                  <button onClick={stopInterview} className="px-3 py-2 rounded bg-rose-500 text-white">Stop</button>
-                )}
-                <button onClick={() => {
-                  // quick trigger HR mock
-                  (async () => {
-                    const reply = await fetchAiResponse();
-                    setHrLines((h) => [...h, reply]);
-                    const ut = new SpeechSynthesisUtterance(reply);
-                    window.speechSynthesis.speak(ut);
-                  })();
-                }} className="px-3 py-2 rounded border border-sky-600">Simulate HR</button>
-              </div>
-            </div>
+            <AIFeedbackPanelLocal items={aiItems} />
 
             <div className="bg-[#021025]/20 p-3 rounded-md text-xs">
               <strong>Tips</strong>
@@ -188,6 +234,41 @@ const InterviewPage: React.FC = () => {
             </div>
           </div>
         </div>
+        <ControlBar micOn={isMicOn} camOn={isCamOn} onToggleMic={toggleMic} onToggleCam={toggleCam} onShowTranscript={() => {}} onGetFeedback={handleGetAI} onEnd={handleEnd} />
+
+        {/* Summary Modal */}
+        {showSummary && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="glass p-6 rounded-xl w-full max-w-2xl">
+              <h3 className="text-2xl font-orbitron text-[#00BFFF] mb-3">Interview Summary</h3>
+              <p className="text-white/80 mb-4">Thank you — the interview session has ended. Below is a brief AI summary.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="p-4 bg-white/5 rounded">
+                  <div className="text-sm text-white/60">Average AI Score</div>
+                  <div className="text-3xl font-bold text-[#00BFFF]">{Math.round((aiItems.reduce((s, i) => s + (i.score || 7), 0) / Math.max(1, aiItems.length)) || 0)}/10</div>
+                </div>
+                <div className="p-4 bg-white/5 rounded">
+                  <div className="text-sm text-white/60">Top Strength</div>
+                  <div className="text-lg font-semibold">Clear technical explanations</div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <h4 className="text-sm text-white/70 mb-2">AI feedback snippets</h4>
+                <div className="space-y-2 max-h-40 overflow-auto">
+                  {aiItems.map((it, i) => (
+                    <div key={i} className="p-3 bg-white/3 rounded">{it.feedback}</div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setShowSummary(false)} className="px-4 py-2 rounded bg-white/10">Close</button>
+                <button onClick={() => { setShowSummary(false); navigate('/candidate-dashboard'); }} className="px-4 py-2 rounded bg-gradient-to-r from-[#00BFFF] to-[#1E90FF] text-black">Back to Dashboard</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

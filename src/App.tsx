@@ -4,7 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-// CompanyNavbar intentionally removed per user request to remove headers
+import AIGlobalInsights from "./components/company/AIGlobalInsights";
+import CompanyLayout from "./components/company/CompanyLayout";
+import CompanyNavbar from "./components/company/CompanyNavbar.tsx";
+import CompanySettings from "./components/company/CompanySettings";
+import DepartmentPerformance from "./components/company/DepartmentPerformance";
+import HRList from "./components/company/HRList";
+import InterviewAnalytics from "./components/company/InterviewAnalytics";
+import JobPostings from "./components/company/JobPostings";
 import AIFeedbackPanel from "./components/hr/AIFeedbackPanel";
 import AnalyticsCharts from "./components/hr/AnalyticsCharts";
 import HRLayout from "./components/hr/HRLayout";
@@ -23,6 +30,7 @@ import CompanyDashboard from "./pages/CompanyDashboard";
 import HRDashboard from "./pages/HRDashboard";
 import HRLogin from "./pages/HRLogin";
 import InterviewPage from "./pages/InterviewPage";
+import Interview3DInterface from "./pages/Interview3DInterface";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
@@ -61,8 +69,17 @@ const App = () => (
             </Route>
 
             <Route path="/practice" element={<Suspense fallback={<div className='p-6'>Loading practice...</div>}><PracticePage /></Suspense>} />
-            <Route path="/company" element={<CompanyDashboard />} />
+            <Route path="/company" element={<CompanyLayout />}>
+              <Route index element={<CompanyDashboard />} />
+              <Route path="hr-list" element={<HRList />} />
+              <Route path="job-postings" element={<JobPostings />} />
+              <Route path="departments" element={<DepartmentPerformance />} />
+              <Route path="analytics" element={<InterviewAnalytics />} />
+              <Route path="ai-insights" element={<AIGlobalInsights />} />
+              <Route path="settings" element={<CompanySettings />} />
+            </Route>
             <Route path="/interview" element={<InterviewPage />} />
+            <Route path="/interview3d" element={<Interview3DInterface />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

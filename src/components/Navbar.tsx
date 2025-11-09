@@ -30,10 +30,10 @@ export const Navbar = ({ showSearch = false, onToggleSidebar }: NavbarProps) => 
   return (
     <nav
       ref={el}
-      className="fixed top-0 left-0 right-0 z-50 glass bg-gradient-to-r from-[#031224]/60 via-[#04243a]/50 to-[#021826]/60 border-b border-border backdrop-blur-lg">
-      <div className="container mx-auto px-6 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      className="fixed top-0 left-0 right-0 z-50 h-[var(--app-navbar-height)] glass bg-gradient-to-r from-[#031224]/60 via-[#04243a]/50 to-[#021826]/60 border-b border-border backdrop-blur-lg">
+      <div className="container mx-auto px-6 h-full">
+        <div className="flex items-center justify-between h-full">
+            <div className="flex items-center gap-4 h-full">
             {onToggleSidebar && (
               <Button
                 variant="ghost"
@@ -56,7 +56,7 @@ export const Navbar = ({ showSearch = false, onToggleSidebar }: NavbarProps) => 
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 h-full">
             <div className="hidden md:flex items-center gap-2">
               <Link to="/candidate-dashboard" className="text-sm text-sky-100/80 hover:underline">
                 HR

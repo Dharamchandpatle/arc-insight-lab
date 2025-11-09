@@ -38,4 +38,38 @@
     "avgJDMatch": 85,
     "feedbackReports": 24
   }
+
+  ,
+  "openPositions": [
+    {
+      "id": 101,
+      "title": "Senior Frontend Engineer",
+      "department": "Engineering",
+      "applicants": 42,
+      "postedDate": "2025-10-01",
+      "status": "Open"
+    },
+    {
+      "id": 102,
+      "title": "Data Scientist",
+      "department": "Data",
+      "applicants": 27,
+      "postedDate": "2025-09-15",
+      "status": "Open"
+    },
+    {
+      "id": 103,
+      "title": "Product Designer",
+      "department": "Design",
+      "applicants": 18,
+      "postedDate": "2025-10-20",
+      "status": "Closed"
+    }
+  ],
+
+  "hrTeam": [
+    { "id": 1, "name": "Asha Verma", "role": "HR Manager" },
+    { "id": 2, "name": "Sameer Gupta", "role": "Recruiter" },
+    { "id": 3, "name": "Maya Rao", "role": "Talent Partner" }
+  ]
 }
